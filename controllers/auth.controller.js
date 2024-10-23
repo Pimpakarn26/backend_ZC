@@ -5,40 +5,45 @@ const User = db.User;
 const Role = db.Role;
 
 exports.signup = async (req, res) => {
-  const { username, email, password,address, latitude, longitude, roleId } = req.body;
-
-  // ตรวจสอบว่าฟิลด์ทั้งหมดมีค่า
-  if (!username || !email || !password ||!address ||!latitude ||!longitude  ) {
+    const { username, email, password, address, latitude, longitude, roleId } = req.body;
+  
+    // ตรวจสอบว่าฟิลด์ทั้งหมดมีค่า
+    if (!username || !email || !password || !address) {
       return res.status(400).json({ message: "All fields are required!" });
-  }
-
-  try {
+    }
+  
+    try {
       const hashedPassword = await bcrypt.hash(password, 8);
+      
+      // กำหนดค่าปริยายสำหรับ latitude และ longitude ถ้าค่าเป็นค่าว่าง
+      const lat = latitude || 0.0; // หรือค่าที่เหมาะสม
+      const long = longitude || 0.0; // หรือค่าที่เหมาะสม
+  
       const user = await User.create({
-          username,
-          email,
-          password: hashedPassword,
-          address,
-          latitude,
-          longitude,
+        username,
+        email,
+        password: hashedPassword,
+        address,
+        latitude: lat,
+        longitude: long,
       });
-
+  
       if (roleId) {
-          const role = await Role.findByPk(roleId);
-          if (role) {
-              await user.setRoles([role]);
-          }
-      } else {
-          const role = await Role.findOne({ where: { name: "user" } });
+        const role = await Role.findByPk(roleId);
+        if (role) {
           await user.setRoles([role]);
+        }
+      } else {
+        const role = await Role.findOne({ where: { name: "user" } });
+        await user.setRoles([role]);
       }
-
+  
       res.status(201).json({ message: "User registered successfully!" });
-  } catch (error) {
+    } catch (error) {
       res.status(500).json({ message: "Error registering user", error });
-  }
-};
-
+    }
+  };
+  
 exports.signin = async (req, res) => {
   const { username, password } = req.body;
   try {

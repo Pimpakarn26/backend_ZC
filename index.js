@@ -27,6 +27,7 @@ const initRole = () => {
 
 app.use(cors({ origin: frontend_url }));
 app.use(express.json()); // ใช้ในการ parse ข้อมูล JSON จาก request body
+app.use(express.urlencoded({extended: true}));
 
 
 
